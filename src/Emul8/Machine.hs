@@ -54,6 +54,7 @@ type Stack = [Addr]
 initStack :: Stack
 initStack = replicate (fromIntegral maxSP) 0x000
 
+
 data Machine = Machine { regs    :: Regs     -- general-purpose registers
                        , mem     :: MemBlk   -- system memory
                        , pc      :: Addr     -- program counter
@@ -105,7 +106,7 @@ applyOp o m = parseOp o >>= flip applyInstr m
 
 applyInstr :: Instr -> Machine -> Result Machine
 applyInstr i m = case i of
-  Cls    -> Right m
+  Cls    -> Right m { screen=initScreen }
   Ret    -> applyRet m
   Sys _  -> Right m
   Jp   a -> Right $ applyJp a m
