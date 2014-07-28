@@ -30,6 +30,9 @@ wMode = F.Window
 glVersionMajor = 2
 glVersionMinor = 1
 
+-- the key used to quit the emulator
+quitKey = F.ESC
+
 -- initialize
 initialize :: IO Bool
 initialize = F.initialize
@@ -60,26 +63,31 @@ runMachine m = do
 --  time since the timers were last updated (seconds)
 data World = World Machine Double Double
 
--- the time taken to run each instruction (about 840 Hz)
-instrSpeed = 0.01904761904761906 :: Double
+-- the time taken to run each instruction (840 Hz)
+instrSpeed = 1 / 840 :: Double
 -- the timer update interval (60 Hz)
-timerSpeed = 0.16666666666666667 :: Double
+timerSpeed = 1 / 60 :: Double
 
 -- Emulate a world. The first argument is the time recorded from the last frame.
 runWorld :: Double -> World -> IO ()
 runWorld t w = do
-  drawWorld w
-  F.swapBuffers
-  w' <- handleInput w
-  t' <- get F.time
-  let world' = emulate (t' - t) w'
-  either putStrLn (runWorld t') world'
+  F.pollEvents
+  qk <- F.getKey quitKey
+  if qk == F.Press
+    then putStrLn "Quitting..."
+    else do
+    drawWorld w
+    F.swapBuffers
+    w' <- handleInput w
+    t' <- get F.time
+    let world' = emulate (t' - t) w'
+    either putStrLn (runWorld t') world'
 
 -- Render the world.
 drawWorld :: World -> IO ()
 drawWorld (World m _ _) = drawScreen (screen m)
 
--- mappings of Gloss Keys to Emul8 KeyIDs
+-- mappings of GLFW Keys to Emul8 KeyIDs
 keymap :: [(F.Key,KeyID)]
 keymap = [ (F.CharKey '1', 0x1)
          , (F.CharKey '2', 0x2)

@@ -21,9 +21,32 @@ CHIP-8 implementation is the SYS opcode, the implementation of which actually
 requires emulating another system altogether. (This opcode is so seldom used
 that this is not a problem in practice, anyway).
 
-Right now, the emulator is not complete because using Haskell for graphics is an
-indescribable form of Hell. However, the internal model of the machine is fully
-complete.
+The emulator should be compatible with pretty much any CHIP-8 program that
+doesn't use the keyboard. It might work with programs that use the keyboard as
+well, but I haven't gotten around to testing this ;) . To use the emulator,
+simply run
+
+    emul8 FILE
+
+Where `FILE` is the CHIP-8 program file. To quite the emulator, just press
+<ESC>.
+
+A lot of CHIP-8 programs can be downloaded from <http://chip8.com>. (Download
+the "Chip-8 Program Pack").
+
+
+Building and Installing
+-----------------------
+
+Building emul8 requires GHC and cabal-install. With these installed, simply run
+
+    cabal install
+
+from the project directory. To build emul8 and install it locally (on a
+single-user basis). To install it for all users on the system, become root and
+run
+
+    cabal install --global
 
 
 License

@@ -17,10 +17,11 @@ cabal-version:       >=1.10
 
 executable emul8
   main-is:             Main.hs
-  other-modules:       Emul8.Core Emul8.Graphics Emul8.Instr Emul8.Keyboard
-                       Emul8.Machine Emul8.Screen Emul8.UI
+  other-modules:       Emul8.Core Emul8.Font Emul8.Graphics Emul8.Instr
+                       Emul8.Keyboard Emul8.Load Emul8.Machine Emul8.Screen
+                       Emul8.UI
   -- other-extensions:
-  build-depends:       OpenGL,
-                       base >=4.7 && <4.8, array, random, GLFW
+  build-depends:       base >=4.7 && <4.8, array, bytestring, random, GLFW,
+                       OpenGL
   hs-source-dirs:      src
   default-language:    Haskell2010

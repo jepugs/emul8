@@ -12,7 +12,7 @@ drawScreen :: Screen -> IO ()
 drawScreen scr = do
   GL.matrixMode $= GL.Projection
   GL.loadIdentity
-  GL.ortho 0 (fromIntegral scrWidth) (fromIntegral scrHeight) 0 0 0
+  GL.ortho 0 (fromIntegral scrWidth) (fromIntegral scrHeight) 0 (-0.5) 0.5
   GL.matrixMode $= GL.Modelview 0
   GL.clear [ GL.ColorBuffer ]
   renderPixels (assocs scr)
@@ -27,12 +27,13 @@ pixelAt :: Integral a => (a,a) -> IO ()
 pixelAt (x,y) = do
   GL.preservingMatrix $ do
     GL.translate $ GL.Vector3 x' y' (0.0 :: GL.GLfloat)
+    renderPixel
   where x' = fromIntegral x
         y' = fromIntegral y
 
 renderPixel = do
   GL.renderPrimitive GL.Quads $ do
-    GL.color $ GL.Color3 0.4 0.4 (0.4 :: GL.GLfloat)
+    GL.color $ GL.Color3 0.8 0.8 (0.8 :: GL.GLfloat)
     GL.vertex $ GL.Vertex2 0.0 (0.0 :: GL.GLfloat)
     GL.vertex $ GL.Vertex2 0.0 (1.0 :: GL.GLfloat)
     GL.vertex $ GL.Vertex2 1.0 (1.0 :: GL.GLfloat)
