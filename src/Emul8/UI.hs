@@ -82,6 +82,7 @@ runWorld t w = do
     t' <- get F.time
     let world' = emulate (t' - t) w'
     either putStrLn (runWorld t') world'
+  where m = (\(World m _ _) -> m) w
 
 -- Render the world.
 drawWorld :: World -> IO ()
@@ -93,18 +94,18 @@ keymap = [ (F.CharKey '1', 0x1)
          , (F.CharKey '2', 0x2)
          , (F.CharKey '3', 0x3)
          , (F.CharKey '4', 0xc)
-         , (F.CharKey 'q', 0x4)
-         , (F.CharKey 'w', 0x5)
-         , (F.CharKey 'e', 0x6)
-         , (F.CharKey 'r', 0xd)
-         , (F.CharKey 'a', 0x7)
-         , (F.CharKey 's', 0x8)
-         , (F.CharKey 'd', 0x9)
-         , (F.CharKey 'f', 0xe)
-         , (F.CharKey 'z', 0xa)
-         , (F.CharKey 'x', 0x0)
-         , (F.CharKey 'c', 0xb)
-         , (F.CharKey 'v', 0xf)
+         , (F.CharKey 'Q', 0x4)
+         , (F.CharKey 'W', 0x5)
+         , (F.CharKey 'E', 0x6)
+         , (F.CharKey 'R', 0xd)
+         , (F.CharKey 'A', 0x7)
+         , (F.CharKey 'S', 0x8)
+         , (F.CharKey 'D', 0x9)
+         , (F.CharKey 'F', 0xe)
+         , (F.CharKey 'Z', 0xa)
+         , (F.CharKey 'X', 0x0)
+         , (F.CharKey 'C', 0xb)
+         , (F.CharKey 'V', 0xf)
          ]
 
 -- convert a key state
@@ -122,13 +123,13 @@ handleInput (World m ti tt) =
   do F.pollEvents
      keys <- mapM (F.getKey . fst) keymap
      let keys' = map convKS keys
-     let kbd'  = kbd m // zip [0x0..0xf] keys'
+     let kbd'  = kbd m // zip (map snd keymap) keys'
      let m'    = m { kbd=kbd' }
      case waiting m of
        Nothing -> return $ World m' ti tt
        Just vx -> case findKeyPress (kbd m) kbd' of
-         Nothing -> return $ World m { kbd=kbd' } ti tt
-         Just k  -> return $ World (setReg vx k m') ti tt
+         Nothing -> return $ World m' ti tt
+         Just k  -> return $ World (setReg vx k m' { waiting=Nothing }) ti tt
 
 -- Emulate the world for a specified time interval. Takes the elapsed time in
 -- seconds as an argument.

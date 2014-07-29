@@ -8,6 +8,7 @@ import Data.Bits
 
 -- A single pixel on the screen
 data Pixel = Empty | Full
+           deriving Eq
 
 type Screen = Array (Byte,Byte) Pixel
 
@@ -34,20 +35,24 @@ initScreen = array ((0,0),(scrMaxX,scrMaxY))
 
 
 -- Given x and y coordinates and a list of bytes (representing a sprite), draw a
--- sprite.
-drawAt :: Byte -> Byte -> [Byte] -> Screen -> Screen
-drawAt _ _ []     d = d
-drawAt x y (c:cs) d = drawAt x (y + 1) cs d'
+-- sprite. The bool is whether or not a collision happened.
+drawAt :: Byte -> Byte -> [Byte] -> Screen -> (Screen,Bool)
+drawAt _ _ []     d = (d,False)
+drawAt x y (c:cs) d = if col
+                      then (fst scr',True)
+                      else scr'
   where bs = zip (zip [x..x + 7] (repeat y)) (destructByte c)
         ps = map fst (filter snd bs)
-        d' = drawPixels ps d
+        (d',col) = drawPixels ps d
+        scr' = drawAt x (y + 1) cs d'
 
 -- toggle pixels at the specified coordinates
-drawPixels :: [(Byte,Byte)] -> Screen -> Screen
-drawPixels ps d = d'
+drawPixels :: [(Byte,Byte)] -> Screen -> (Screen,Bool)
+drawPixels ps d = (d',col)
   where ps' = map mf ps  -- ensure that pixels wrap rather than causing an array
                          -- out of bounds error
         mf (x,y) = (x `mod` scrWidth,y `mod` scrHeight)
+        col = any (== Full) $ map (d !) ps'
         d' = d // [(p,flipPx (d ! p)) | p <- ps']
 
 -- Destruct a byte into a list of 8 booleans, with True representing a high bit

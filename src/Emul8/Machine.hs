@@ -82,7 +82,11 @@ loadMachine prog m = m { mem = mem' }
 
 -- simulate one clock cycle of the machine
 step :: Machine -> Result Machine
-step m = applyOp op m
+step m = if p >= memMax
+         then Left "Reached end of memory."
+         else if isJust (waiting m)
+              then return m
+              else applyOp op m
   where p  = pc m
         r  = mem m
         b1 = fromIntegral (r ! p) :: Word
@@ -123,9 +127,7 @@ applyInstr i m = case i of
   LdC  vx c  -> incPC $ setReg vx c m
   AddC vx c  -> let x = getReg vx m
                     m' = setReg vx (x + c) m
-                in if x > byteMask - c
-                   then incPC $ setVF m'
-                   else incPC $ unsetVF m'
+                in incPC m'
   LdV  vx vy -> let y = getReg vy m
                 in incPC $ setReg vx y m
   Or   vx vy -> let v = getReg vx m .|. getReg vy m
@@ -172,18 +174,24 @@ applyInstr i m = case i of
                   (i, s') = next seed
                   r  = fromIntegral i .&. c
                   m' = setReg vx r m
-              in (incPC $ setRandGen s' m')
+              in incPC $ setRandGen s' m'
   Drw vx vy n -> let x = getReg vx m
                      y = getReg vy m
                      cs = readBytes (iReg m) n m
-                     scr = screen m
-                 in incPC (m { screen=drawAt x y cs scr })
-  Skp  vx -> if isDown (ensureNyb vx) (kbd m)
-             then incPC m >>= incPC
-             else incPC m
-  Sknp vx -> if isUp   (ensureNyb vx) (kbd m)
-             then incPC m >>= incPC
-             else incPC m
+                     mscr = screen m
+                     (scr',col) = drawAt x y cs mscr
+                     m' = m { screen=scr' }
+                 in if col
+                    then incPC $ setVF m'
+                    else incPC $ unsetVF m'
+  Skp  vx -> let x = getReg vx m
+             in if isDown x (kbd m)
+                then incPC m >>= incPC
+                else incPC m
+  Sknp vx -> let x = getReg vx m
+             in if isDown x (kbd m)
+                then incPC m
+                else incPC m >>= incPC
   LdDT vx -> incPC $ setReg vx (dt m) m
   LdK  vx -> incPC m { waiting=Just vx }
   SetDT vx -> let x = getReg vx m
@@ -224,7 +232,7 @@ setReg x c m = m { regs=regs' }
 incPC :: Machine -> Result Machine
 incPC m = if pc' > memMax
           then Left "Reached end of memory."
-          else Right (m { pc=pc'})
+          else Right m { pc=pc'}
   where pc' = pc m + 2
 
 -- set the new random generator
@@ -233,15 +241,15 @@ setRandGen r m = m { randGen = r }
 
 -- set the overflow/underflow bit
 setVF :: Machine -> Machine
-setVF m = setReg 0xf 1 m
+setVF m = setReg 0xf 0x01 m
 unsetVF :: Machine -> Machine
-unsetVF m = setReg 0xf 0 m
+unsetVF m = setReg 0xf 0x00 m
 
 -- All these compare two values and give a value of type Bool
-cmpEC  vx c  m = c == getReg vx m
-cmpNEC vx c  m = not (cmpEC vx c m)
+cmpEC  vx c  m = getReg vx m == c
+cmpNEC vx c  m = not $ cmpEC vx c m
 cmpEV  vx vy m = getReg vx m == getReg vy m
-cmpNEV vx vy m = not (cmpEV vx vy m)
+cmpNEV vx vy m = not $ cmpEV vx vy m
 
 -- Read a byte from the machine's memory
 readByte :: Addr -> Machine -> Byte

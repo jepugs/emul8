@@ -10,7 +10,7 @@ font = char0 ++ char1 ++ char2 ++ char3 ++ char4 ++ char5 ++ char6 ++ char7 ++
 charLen = 5
 
 -- the length of the font in bytes
-fontLen = 0xf * charLen
+fontLen = 0x10 * charLen
 
 -- character position list
 charPosns = [ charLen * i | i <- [0..0xf] ] :: [Addr]
