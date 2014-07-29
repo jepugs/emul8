@@ -14,7 +14,7 @@ import qualified Graphics.UI.GLFW as F
 
 
 -- Window settings
-winSize = Size (8 * fromIntegral scrWidth) (8 * fromIntegral scrHeight)
+winSize = Size (16 * fromIntegral scrWidth) (16 * fromIntegral scrHeight)
 rgbBits = F.DisplayRGBBits 8 8 8
 alphaBits = F.DisplayAlphaBits 0
 depthBits = F.DisplayDepthBits 0
@@ -25,6 +25,7 @@ displayBits = [ rgbBits
               , stencBits
               ]
 wMode = F.Window
+noResize = True
 
 -- OpenGL context settings
 glVersionMajor = 2
@@ -44,10 +45,12 @@ cleanup = F.terminate
 -- Open a window with the specified name
 openWindow :: String -> IO Bool
 openWindow title = do
+  F.openWindowHint F.NoResize noResize
   F.openWindowHint F.OpenGLVersionMajor glVersionMajor
   F.openWindowHint F.OpenGLVersionMinor glVersionMinor
   b <- F.openWindow winSize displayBits wMode
   F.windowTitle $= title
+  initViewport
   return b
 
 -- Emulate a machine.

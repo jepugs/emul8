@@ -8,12 +8,18 @@ import qualified Graphics.Rendering.OpenGL as GL
 import Graphics.Rendering.OpenGL (($=))
 
 
-drawScreen :: Screen -> IO ()
-drawScreen scr = do
+-- Initialize the viewport such that 0,0 is the top left corner and 63,31 is the
+-- lower right.
+initViewport :: IO ()
+initViewport = do
   GL.matrixMode $= GL.Projection
   GL.loadIdentity
   GL.ortho 0 (fromIntegral scrWidth) (fromIntegral scrHeight) 0 (-0.5) 0.5
   GL.matrixMode $= GL.Modelview 0
+
+
+drawScreen :: Screen -> IO ()
+drawScreen scr = do
   GL.clear [ GL.ColorBuffer ]
   renderPixels (assocs scr)
 
