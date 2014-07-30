@@ -45,9 +45,7 @@ parseOp op = case d1 of
   0x0 -> case (d2,d3,d4) of
       (0x0,0xe,0x0) -> Right Cls
       (0x0,0xe,0xe) -> Right Ret
-      _ -> if addr < memMin
-           then wrong
-           else Right (Sys addr)
+      _ -> Right (Sys addr)
   0x1 -> Right (Jp addr)
   0x2 -> Right (Call addr)
   0x3 -> Right (SeC vx c)

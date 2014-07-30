@@ -54,10 +54,10 @@ openWindow title = do
   return b
 
 -- Emulate a machine.
-runMachine :: Machine -> IO ()
-runMachine m = do
+runMachine :: Machine -> Double -> IO ()
+runMachine m is = do
   F.time $= 0.0
-  runWorld 0.0 $ World m 0.0 0.0 instrSpeed
+  runWorld 0.0 $ World m 0.0 0.0 is
 
 -- The data type used to represent the entire emulator state from frame to
 -- frame.
@@ -70,6 +70,8 @@ data World = World { wMachine :: Machine -- | The virtual machine
 
 -- the time taken to run each instruction (840 Hz)
 instrSpeed = 1 / 840 :: Double
+-- a faster instrSpeed
+fastSpeed = 1 / 1800 :: Double
 -- the timer update interval (60 Hz)
 timerSpeed = 1 / 60 :: Double
 
@@ -79,7 +81,7 @@ runWorld t w = do
   F.pollEvents
   qk <- F.getKey quitKey
   if qk == F.Press
-    then putStrLn "Quitting..."
+    then putStrLn "Done executing."
     else do
     drawWorld w
     F.swapBuffers

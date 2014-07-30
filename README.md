@@ -11,6 +11,9 @@ CHIP-8 is a virtual machine invented in the 80s. Originally, it was implemented
 as an interpreter running on an RCA CDP1802 8-bit microcontroller. Because of
 its simplicity, it was later widely emulated on a variety of platforms.
 
+A lot of CHIP-8 programs can be downloaded from <http://chip8.com>. (Download
+the "Chip-8 Program Pack").
+
 
 The Emulator
 ------------
@@ -26,10 +29,9 @@ To use the emulator, simply run
     emul8 FILE
 
 Where `FILE` is the CHIP-8 program file. To quite the emulator, just press
-<ESC>.
+<ESC>. More information can be found by running
 
-A lot of CHIP-8 programs can be downloaded from <http://chip8.com>. (Download
-the "Chip-8 Program Pack").
+    emul8 -h
 
 
 Keyboard Input

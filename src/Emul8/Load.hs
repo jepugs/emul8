@@ -7,10 +7,10 @@ import Data.ByteString
 import System.IO hiding (hGetContents)
 
 
-loadFile :: String -> Machine -> IO Machine
-loadFile str m = do
+loadFile :: String -> Addr -> Machine -> IO Machine
+loadFile str a m = do
   prog <- readFileProg str
-  return $ loadMachine prog m
+  return $ loadMachine a prog m
 
 readFileProg :: String -> IO Program
 readFileProg str = do

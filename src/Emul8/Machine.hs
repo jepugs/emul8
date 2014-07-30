@@ -76,9 +76,9 @@ initMachine gen = Machine initRegs initMem memStart 0x00 Nothing initStack 0 0
                           gen initScreen initKeyboard Nothing
 
 -- enter a program into a machine
-loadMachine :: Program -> Machine -> Machine
-loadMachine prog m = m { mem = mem' }
-  where mem' = initMem // zip [memStart..memMax] prog
+loadMachine :: Addr -> Program -> Machine -> Machine
+loadMachine a prog m = m { mem = mem' }
+  where mem' = initMem // zip [a..memMax] prog
 
 -- simulate one clock cycle of the machine
 step :: Machine -> Result Machine
