@@ -57,14 +57,16 @@ openWindow title = do
 runMachine :: Machine -> IO ()
 runMachine m = do
   F.time $= 0.0
-  runWorld 0.0 $ World m 0.0 0.0
+  runWorld 0.0 $ World m 0.0 0.0 instrSpeed
 
 -- The data type used to represent the entire emulator state from frame to
--- frame. The fields are, in order:
---  the virtual machine
---  time since an instruction was last executed (seconds)
---  time since the timers were last updated (seconds)
-data World = World Machine Double Double
+-- frame.
+data World = World { wMachine :: Machine -- | The virtual machine
+                   , wInstrT  :: Double  -- | Time since an instruction was
+                                         -- executed
+                   , wTimerT  :: Double  -- | Time since the timers were updated
+                   , wInstrS  :: Double  -- | Time to execute each instruction
+                   }
 
 -- the time taken to run each instruction (840 Hz)
 instrSpeed = 1 / 840 :: Double
@@ -85,11 +87,10 @@ runWorld t w = do
     t' <- get F.time
     let world' = emulate (t' - t) w'
     either putStrLn (runWorld t') world'
-  where m = (\(World m _ _) -> m) w
 
 -- Render the world.
 drawWorld :: World -> IO ()
-drawWorld (World m _ _) = drawScreen (screen m)
+drawWorld w = drawScreen $ screen $ wMachine w
 
 -- mappings of GLFW Keys to Emul8 KeyIDs
 keymap :: [(F.Key,KeyID)]
@@ -122,34 +123,45 @@ lookupKey = flip lookup keymap
 
 -- process input
 handleInput :: World -> IO World
-handleInput (World m ti tt) =
+handleInput w =
   do F.pollEvents
      keys <- mapM (F.getKey . fst) keymap
      let keys' = map convKS keys
      let kbd'  = kbd m // zip (map snd keymap) keys'
      let m'    = m { kbd=kbd' }
+     let w'    = w { wMachine=m' }
      case waiting m of
-       Nothing -> return $ World m' ti tt
+       Nothing -> return w'
        Just vx -> case findKeyPress (kbd m) kbd' of
-         Nothing -> return $ World m' ti tt
-         Just k  -> return $ World (setReg vx k m' { waiting=Nothing }) ti tt
+         Nothing -> return w'
+         Just k  -> return w { wMachine=setReg vx k m' { waiting=Nothing } }
+  where m  = wMachine w
+        ti = wInstrT w
+        tt = wTimerT w
 
 -- Emulate the world for a specified time interval. Takes the elapsed time in
 -- seconds as an argument.
 emulate :: Double -> World -> Result World
-emulate t (World m ti tt)
+emulate t w
   | tt' > timerSpeed =
     emInstr timerSpeed wt' >>= emulate (t - timerSpeed)
-  | otherwise = emInstr t $ World m ti (tt + t)
-  where tt' = t + tt
+  | otherwise = emInstr t w { wTimerT=tt' }
+  where m = wMachine w
+        ti = wInstrT w
+        tt = wTimerT w
+        tt' = t + tt
         mt' = updateTimers m
-        wt' = World mt' ti (tt - timerSpeed)
+        wt' = w { wMachine=mt', wTimerT=tt - timerSpeed }
 
 -- Emulate a world without updating timers
 emInstr :: Double -> World -> Result World
-emInstr t (World m ti tt)
-  | ti' > instrSpeed = w' >>= emInstr (t - instrSpeed)
-  | otherwise = Right $ World m (ti + t) tt
-  where ti' = ti + t
+emInstr t w
+  | ti' > is = w' >>= emInstr (t - is)
+  | otherwise = Right $ w { wInstrT=ti + t }
+  where m = wMachine w
+        ti = wInstrT w
+        tt = wTimerT w
+        is = wInstrS w
+        ti' = ti + t
         m' = step m
-        w' = (\m -> World m (ti - instrSpeed) tt) <$> m'
+        w' = (\m -> w { wMachine=m, wInstrT=ti - instrSpeed }) <$> m'
