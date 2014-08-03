@@ -2,17 +2,19 @@ module Emul8.Font where
 
 import Emul8.Core
 
+-- | The bitmap font included in the CHIP-8 runtime
 font :: [Byte]
 font = char0 ++ char1 ++ char2 ++ char3 ++ char4 ++ char5 ++ char6 ++ char7 ++
        char8 ++ char9 ++ charA ++ charB ++ charC ++ charD ++ charE ++ charF
 
--- the length of each character in bytes
+-- | The length of each font character in bytes
 charLen = 5
 
--- the length of the font in bytes
+-- | The length of the font in bytes
 fontLen = 0x10 * charLen
 
--- character position list
+-- | The position of each character relative to the start of the font, e.g. the
+-- character for 'c' starts at charPosns !! 0xc
 charPosns = [ charLen * i | i <- [0..0xf] ] :: [Addr]
 
 char0 = [ 0xf0

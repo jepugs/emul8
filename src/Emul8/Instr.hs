@@ -2,7 +2,7 @@ module Emul8.Instr where
 
 import Emul8.Core
 
--- Instructions are given in ascending order of the minimum opcode value
+-- | Instructions are given in ascending order of the minimum opcode value
 data Instr = Cls
            | Ret
            | Sys  Addr
@@ -39,7 +39,7 @@ data Instr = Cls
            | WrtV Vx
            | RdV  Vx
 
--- Generate an instruction from a given opcode
+-- | Generate an instruction from a given opcode
 parseOp :: Op -> Either String Instr
 parseOp op = case d1 of
   0x0 -> case (d2,d3,d4) of
