@@ -16,9 +16,15 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 executable emul8
-  main-is:             Main.hs
-  other-modules:       Emul8.Core Emul8.Font Emul8.Graphics Emul8.Instr
-                       Emul8.Keyboard Emul8.Load Emul8.Machine Emul8.Screen
+  main-is:             Emul8.hs
+  other-modules:       Common.Core
+                       Common.Instr
+                       Common.Load
+                       Emul8.Font
+                       Emul8.Graphics
+                       Emul8.Keyboard
+                       Emul8.Machine
+                       Emul8.Screen
                        Emul8.UI
   -- other-extensions:
   build-depends:       base >=4.7 && <4.8, array, bytestring, random, GLFW,

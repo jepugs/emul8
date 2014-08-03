@@ -1,6 +1,7 @@
 module Emul8.UI where
 
-import Emul8.Core
+import Common.Core
+import Common.Load
 import Emul8.Graphics
 import Emul8.Keyboard
 import Emul8.Machine
@@ -58,6 +59,12 @@ runMachine :: Machine -> Double -> IO ()
 runMachine m is = do
   F.time $= 0.0
   runWorld 0.0 $ World m 0.0 0.0 is
+
+-- Load a program into a Machine's memory
+loadFile :: String -> Addr -> Machine -> IO Machine
+loadFile str a m = do
+  prog <- readFileProg str
+  return $ loadMachine a prog m
 
 -- The data type used to represent the entire emulator state from frame to
 -- frame.

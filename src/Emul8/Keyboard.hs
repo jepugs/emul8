@@ -1,7 +1,9 @@
 module Emul8.Keyboard where
 
+import Common.Core
+
 import Data.Array
-import Emul8.Core
+
 
 data KeyState = KeyUp | KeyDown
               deriving (Eq,Show)

@@ -1,6 +1,6 @@
-module Emul8.Instr where
+module Common.Instr where
 
-import Emul8.Core
+import Common.Core
 
 -- | Instructions are given in ascending order of the minimum opcode value
 data Instr = Cls

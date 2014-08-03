@@ -1,6 +1,6 @@
 module Emul8.Graphics where
 
-import Emul8.Core
+import Common.Core
 import Emul8.Screen
 
 import Data.Array

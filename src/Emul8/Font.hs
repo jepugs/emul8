@@ -1,6 +1,7 @@
 module Emul8.Font where
 
-import Emul8.Core
+import Common.Core
+
 
 -- | The bitmap font included in the CHIP-8 runtime
 font :: [Byte]

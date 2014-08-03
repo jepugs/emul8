@@ -1,4 +1,4 @@
-module Emul8.Core where
+module Common.Core where
 
 import Data.Bits
 import qualified Data.Word as W (Word8,Word16)

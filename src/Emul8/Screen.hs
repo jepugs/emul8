@@ -1,6 +1,6 @@
 module Emul8.Screen where
 
-import Emul8.Core
+import Common.Core
 
 import Data.Array
 import Data.Bits

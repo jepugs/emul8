@@ -1,8 +1,8 @@
 module Emul8.Machine where
 
-import Emul8.Core
+import Common.Core
+import Common.Instr
 import Emul8.Font
-import Emul8.Instr
 import Emul8.Keyboard
 import Emul8.Screen
 
