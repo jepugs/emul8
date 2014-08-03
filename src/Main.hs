@@ -17,16 +17,18 @@ import System.Random
 data Settings = Settings { sFileName  :: String  -- | The file to load
                          , sSpeed     :: Double  -- | Time taken per instruction
                          , sStartAddr :: Addr    -- | The address to start
-                                                 -- execution at.
+                                                 -- execution at
                          , sProgAddr  :: Addr    -- | The address to load the
                                                  -- program at
+                         , sWrap      :: Bool    -- | Whether out-of-bounds
+                                                 -- pixels should wrap around
                          , sUsage     :: Bool    -- | Whether to show help
                          }
 
 -- | The default settings
-defaults = Settings "" instrSpeed memStart memStart False
+defaults = Settings "" instrSpeed memStart memStart True False
 
--- | The header for the usage string.
+-- | The header for the usage string
 usageHead =
   "Usage: emul8 [OPTION]... FILE\n\
    \emul8 is a CHIP-8 emulator. FILE is the program to load.\n\
@@ -38,6 +40,7 @@ usageStr = usageInfo usageHead options
 -- | Print the help string.
 showUsage = putStrLn usageStr
 
+-- | GetOpt settings
 options :: [OptDescr (Settings -> Settings)]
 options = [ Option "h" ["help"]
               (NoArg (\set -> set { sUsage=True }))
@@ -54,6 +57,9 @@ options = [ Option "h" ["help"]
           , Option ""  ["fast"]
               (NoArg (\set -> set { sSpeed=fastSpeed }))
               "Run the emulator at fast speed (1/1800 seconds per instruction)."
+          , Option ""  ["no-wrap"]
+              (NoArg (\set -> set { sWrap=False }))
+              "Do not wrap out-of-bounds pixels around the screen."
           ]
 
 -- | Parse arugments into a Settings object.
@@ -68,19 +74,19 @@ processArgs args = case getOpt Permute options args of
 
 -- | Run the program with the provided settings.
 runWithSettings :: Settings -> IO ()
-runWithSettings (Settings "" _ _  _  False) =
+runWithSettings (Settings "" _ _  _  _  False) =
   putStrLn "no filename"
-runWithSettings (Settings f  s sa pa False) = do
+runWithSettings (Settings f  s sa pa pw False) = do
   r <- getStdGen
   putStrLn $ "Loading file " ++ f
-  m <- loadFile f pa $ (initMachine r) { pc=sa }
+  m <- loadFile f pa $ (initMachine r) { pc=sa, pxWrap=pw }
   putStrLn "Running. Press <ESC> to quit."
   initialize
   openWindow "Emul8"
   runMachine m instrSpeed
   putStrLn "Exiting..."
   cleanup
-runWithSettings (Settings _  _ _  _  True) = showUsage
+runWithSettings (Settings _  _ _  _  _  True) = showUsage
 
 main = do
   args <- getArgs

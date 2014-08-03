@@ -78,23 +78,32 @@ Compatibility
 -------------
 
 The emulator should be compatible with pretty much any standard CHIP-8
-program. Some examples of incompatible programs are
+program. Some incompatibilities (and some potential solutions) are
+
+- According to most specifications found on the net, out-of-bounds pixels are
+  supposed to be wrapped around the display. emul8 follows this behavior by
+  default. However, some emulators do not respect this, and simply ignore
+  out-of-bounds pixels. Unfortunately, some programs do not work with pixel
+  wrapping. The `--no-wrap` option disables pixel wrapping in emul8, allowing
+  these programs to work.
 
 - Some seemingly-normal CHIP-8 programs actually start execution at address
-  0x600 instead of the original 0x200. Support for these programs will probably
-  be added in the future.
+  0x600 instead of the original 0x200. You can fool around with the `-a` and
+  `-l` options to try to get these to work. See `emul8 --help` for more
+  information.
 
 - SuperChip8 and MegaChip8 are later platforms that are backwards-compatible
-  with the original CHIP-8. emul8 does not support these platforms at this time.
+  with the original CHIP-8. emul8 does not support these platforms.
 
 - The emulator does not support sound at the moment. This is because audio
-  output in Haskell is a pain in the butt. This will probably be fixed
-  eventually.
+  output in Haskell is a nightmare. This will probably be fixed eventually.
 
 - CHIP-8 does not have a standard rate of instruction execution. emul8 executes
   instructions at a rate of 840 Hz. This speed seems to work well with most
-  programs. Some CHIP-8 programs, however, work better at different clock
-  speeds. At some point, a flag will be added to allow different speeds.
+  programs. Some CHIP-8 programs, however, work better at different
+  speeds. Different speeds can be selected with the `-s` option. Note:
+  instruction speed and timer speed are different. The timer speed is always 60
+  Hz.
 
 
 License

@@ -55,25 +55,26 @@ initStack :: Stack
 initStack = []
 
 
-data Machine = Machine { regs    :: Regs     -- general-purpose registers
-                       , mem     :: MemBlk   -- system memory
-                       , pc      :: Addr     -- program counter
-                       , iReg    :: Addr     -- I register
-                       , sp      :: Maybe (Nybble) -- stack pointer
-                       , stack   :: Stack    -- call stack
-                       , dt      :: Byte     -- delay timer
-                       , st      :: Byte     -- sound timer
-                       , randGen :: StdGen   -- random number seed
-                       , screen  :: Screen   -- screen
-                       , kbd     :: Keyboard -- keyboard
-                       , waiting :: Maybe (Nybble) -- which register (if any) is
-                                                   -- waiting for a keystroke
+data Machine = Machine { regs    :: Regs     -- | General-purpose registers
+                       , mem     :: MemBlk   -- | System memory
+                       , pc      :: Addr     -- | Program counter
+                       , iReg    :: Addr     -- | I register
+                       , sp      :: Maybe (Nybble) -- | Stack pointer
+                       , stack   :: Stack    -- | Call stack
+                       , dt      :: Byte     -- | Delay timer
+                       , st      :: Byte     -- | Sound timer
+                       , randGen :: StdGen   -- | Random number seed
+                       , screen  :: Screen   -- | Screen
+                       , kbd     :: Keyboard -- | Keyboard
+                       , waiting :: Maybe (Nybble) -- | Which register (if any)
+                                                   -- is waiting for a keystroke
+                       , pxWrap  :: Bool     -- | Out-of-bounds pixel behavior
                        }
 
 -- initial machine
 initMachine :: StdGen -> Machine
 initMachine gen = Machine initRegs initMem memStart 0x00 Nothing initStack 0 0
-                          gen initScreen initKeyboard Nothing
+                          gen initScreen initKeyboard Nothing False
 
 -- enter a program into a machine
 loadMachine :: Addr -> Program -> Machine -> Machine
@@ -179,7 +180,8 @@ applyInstr i m = case i of
                      y = getReg vy m
                      cs = readBytes (iReg m) n m
                      mscr = screen m
-                     (scr',col) = drawAt x y cs mscr
+                     mpw = pxWrap m
+                     (scr',col) = drawAt x y cs mpw mscr
                      m' = m { screen=scr' }
                  in if col
                     then incPC $ setVF m'

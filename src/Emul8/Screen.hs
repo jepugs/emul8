@@ -34,23 +34,30 @@ initScreen = array ((0,0),(scrMaxX,scrMaxY))
                                      y <- [0..scrMaxY]]
 
 
--- Given x and y coordinates and a list of bytes (representing a sprite), draw a
--- sprite. The bool is whether or not a collision happened.
-drawAt :: Byte -> Byte -> [Byte] -> Screen -> (Screen,Bool)
-drawAt _ _ []     d = (d,False)
-drawAt x y (c:cs) d = if col
-                      then (fst scr',True)
-                      else scr'
+-- | Given x and y coordinates, a list of bytes (representing a sprite), and a
+-- pixel wrapping mode, draw a sprite. The returned Bool is whether or not a
+-- collision happened.
+drawAt :: Byte -> Byte -> [Byte] -> Bool -> Screen -> (Screen,Bool)
+drawAt _ _ []     _ d = (d,False)
+drawAt x y (c:cs) w d = if col
+                        then (fst scr',True)
+                        else scr'
   where bs = zip (zip [x..x + 7] (repeat y)) (destructByte c)
         ps = map fst (filter snd bs)
-        (d',col) = drawPixels ps d
-        scr' = drawAt x (y + 1) cs d'
+        (d',col) = drawPixels ps w d
+        scr' = drawAt x (y + 1) cs w d'
 
--- toggle pixels at the specified coordinates
-drawPixels :: [(Byte,Byte)] -> Screen -> (Screen,Bool)
-drawPixels ps d = (d',col)
-  where ps' = map mf ps  -- ensure that pixels wrap rather than causing an array
-                         -- out of bounds error
+-- | Toggle pixels at the specified coordinates with optional pixel wrapping.
+drawPixels :: [(Byte,Byte)] -> Bool -> Screen -> (Screen,Bool)
+drawPixels ps w d = (d',col)
+  where ps' = if w
+              then map mf ps  -- ensure that pixels wrap rather than causing an
+                              -- array out of bounds error
+              else filter ff ps  -- truncate out-of-bounds pixels
+        ff (x,y) = x >= 0       &&
+                   y >= 0       &&
+                   x <= scrMaxX &&
+                   y <= scrMaxY
         mf (x,y) = (x `mod` scrWidth,y `mod` scrHeight)
         col = any (== Full) $ map (d !) ps'
         d' = d // [(p,flipPx (d ! p)) | p <- ps']
