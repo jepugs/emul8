@@ -29,7 +29,7 @@ To use the emulator, simply run
     emul8 FILE
 
 Where `FILE` is the CHIP-8 program file. To quite the emulator, just press
-<ESC>. More information can be found by running
+\<ESC\>. More information can be found by running
 
     emul8 -h
 
