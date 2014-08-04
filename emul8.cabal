@@ -3,7 +3,7 @@
 
 name:                emul8
 version:             0.1.0.0
-synopsis:            Chip8 emulator.
+synopsis:            Chip8 emulator and disassembler.
 -- description:
 license:             Apache-2.0
 license-file:        LICENSE
@@ -27,7 +27,17 @@ executable emul8
                        Emul8.Screen
                        Emul8.UI
   -- other-extensions:
-  build-depends:       base >=4.7 && <4.8, array, bytestring, random, GLFW,
+  build-depends:       base >=4.6 && <4.8, array, bytestring, random, GLFW,
                        OpenGL
+  hs-source-dirs:      src
+  default-language:    Haskell2010
+
+executable dis8
+  main-is:             Dis8.hs
+  other-modules:       Common.Core
+                       Common.Instr
+                       Common.Load
+                       Dis8.Disassemble
+  build-depends:       base >=4.6 && <4.8, bytestring
   hs-source-dirs:      src
   default-language:    Haskell2010

@@ -1,6 +1,7 @@
 module Common.Instr where
 
 import Common.Core
+import Data.Bits (shift,(.|.))
 
 -- | Instructions are given in ascending order of the minimum opcode value
 data Instr = Cls
@@ -38,6 +39,11 @@ data Instr = Cls
            | WrtB  Vx
            | WrtV Vx
            | RdV  Vx
+           deriving Show
+
+-- | Convert two bytes to an opcode
+makeOp :: Byte -> Byte -> Op
+makeOp b1 b2 = fromIntegral b1 `shift` 8 .|. fromIntegral b2
 
 -- | Generate an instruction from a given opcode
 parseOp :: Op -> Either String Instr
@@ -63,6 +69,7 @@ parseOp op = case d1 of
     0x6 -> Right (Shr vx)
     0x7 -> Right (Subn vx vy)
     0xe -> Right (Shl vx)
+    _   -> wrong
   0x9 -> case d4 of
     0x0 -> Right (SneV vx vy)
     _   -> wrong

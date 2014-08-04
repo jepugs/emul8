@@ -34,6 +34,18 @@ Where `FILE` is the CHIP-8 program file. To quite the emulator, just press
     emul8 -h
 
 
+The Disassembler
+---------------
+
+emul8 now includes a disassembler, dis8. Using dis8 is as easy as running
+
+    dis8 FILE
+
+More information is available by running
+
+    dis8 -h
+
+
 Keyboard Input
 --------------
 
