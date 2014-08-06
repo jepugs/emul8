@@ -9,56 +9,52 @@ import Emul8.Screen
 
 import Control.Applicative
 import Data.Array
-import Graphics.Rendering.OpenGL.GL.StateVar
-import Graphics.Rendering.OpenGL.GL.CoordTrans
 import qualified Graphics.UI.GLFW as F
 
 
 -- Window settings
-winSize = Size (16 * fromIntegral scrWidth) (16 * fromIntegral scrHeight)
-rgbBits = F.DisplayRGBBits 8 8 8
-alphaBits = F.DisplayAlphaBits 0
-depthBits = F.DisplayDepthBits 0
-stencBits = F.DisplayStencilBits 0
-displayBits = [ rgbBits
-              , alphaBits
-              , depthBits
-              , stencBits
-              ]
-wMode = F.Window
-noResize = True
+winWidth = 16 * fromIntegral scrWidth
+winHeight= 16 * fromIntegral scrHeight
 
 -- OpenGL context settings
 glVersionMajor = 2
 glVersionMinor = 1
 
 -- the key used to quit the emulator
-quitKey = F.ESC
+quitKey = F.Key'Escape
 
 -- initialize
 initialize :: IO Bool
-initialize = F.initialize
+initialize = F.init
 
 -- cleanup
 cleanup :: IO ()
 cleanup = F.terminate
 
 -- Open a window with the specified name
-openWindow :: String -> IO Bool
+openWindow :: String -> IO (Maybe F.Window)
 openWindow title = do
-  F.openWindowHint F.NoResize noResize
-  F.openWindowHint F.OpenGLVersionMajor glVersionMajor
-  F.openWindowHint F.OpenGLVersionMinor glVersionMinor
-  b <- F.openWindow winSize displayBits wMode
-  F.windowTitle $= title
-  initViewport
-  return b
+  F.windowHint $ F.WindowHint'Resizable False
+  F.windowHint $ F.WindowHint'Visible True
+  F.windowHint $ F.WindowHint'ContextVersionMajor glVersionMajor
+  F.windowHint $ F.WindowHint'ContextVersionMinor glVersionMinor
+  w <- F.createWindow winWidth winHeight title Nothing Nothing
+  case w of
+    Just w' -> do F.setWindowShouldClose w' False
+                  F.makeContextCurrent w
+                  initViewport
+                  return w
+    Nothing -> return Nothing
+
+-- Close a window
+closeWindow :: F.Window -> IO ()
+closeWindow = F.destroyWindow
 
 -- Emulate a machine.
-runMachine :: Machine -> Double -> IO ()
-runMachine m is = do
-  F.time $= 0.0
-  runWorld 0.0 $ World m 0.0 0.0 is
+runMachine :: Machine -> F.Window -> Double -> IO ()
+runMachine m win is = do
+  F.setTime 0.0
+  runWorld 0.0 $ World m win 0.0 0.0 is
 
 -- Load a program into a Machine's memory
 loadFile :: String -> Addr -> Machine -> IO Machine
@@ -68,11 +64,13 @@ loadFile str a m = do
 
 -- The data type used to represent the entire emulator state from frame to
 -- frame.
-data World = World { wMachine :: Machine -- | The virtual machine
-                   , wInstrT  :: Double  -- | Time since an instruction was
-                                         -- executed
-                   , wTimerT  :: Double  -- | Time since the timers were updated
-                   , wInstrS  :: Double  -- | Time to execute each instruction
+data World = World { wMachine :: Machine  -- | The virtual machine
+                   , wWindow  :: F.Window -- | The GLFW window
+                   , wInstrT  :: Double   -- | Time since an instruction was
+                                          -- executed
+                   , wTimerT  :: Double   -- | Time since the timers were
+                                          -- updated
+                   , wInstrS  :: Double   -- | Time to execute each instruction
                    }
 
 -- the time taken to run each instruction (840 Hz)
@@ -86,16 +84,20 @@ timerSpeed = 1 / 60 :: Double
 runWorld :: Double -> World -> IO ()
 runWorld t w = do
   F.pollEvents
-  qk <- F.getKey quitKey
-  if qk == F.Press
+  qk <- F.getKey win quitKey
+  if qk == F.KeyState'Pressed
     then putStrLn "Done executing."
     else do
     drawWorld w
-    F.swapBuffers
+    F.swapBuffers win
     w' <- handleInput w
-    t' <- get F.time
+    mt'<- F.getTime
+    let t' = case mt' of
+          Just x  -> x
+          Nothing -> t
     let world' = emulate (t' - t) w'
     either putStrLn (runWorld t') world'
+  where win = wWindow w
 
 -- Render the world.
 drawWorld :: World -> IO ()
@@ -103,28 +105,29 @@ drawWorld w = drawScreen $ screen $ wMachine w
 
 -- mappings of GLFW Keys to Emul8 KeyIDs
 keymap :: [(F.Key,KeyID)]
-keymap = [ (F.CharKey '1', 0x1)
-         , (F.CharKey '2', 0x2)
-         , (F.CharKey '3', 0x3)
-         , (F.CharKey '4', 0xc)
-         , (F.CharKey 'Q', 0x4)
-         , (F.CharKey 'W', 0x5)
-         , (F.CharKey 'E', 0x6)
-         , (F.CharKey 'R', 0xd)
-         , (F.CharKey 'A', 0x7)
-         , (F.CharKey 'S', 0x8)
-         , (F.CharKey 'D', 0x9)
-         , (F.CharKey 'F', 0xe)
-         , (F.CharKey 'Z', 0xa)
-         , (F.CharKey 'X', 0x0)
-         , (F.CharKey 'C', 0xb)
-         , (F.CharKey 'V', 0xf)
+keymap = [ (F.Key'1, 0x1)
+         , (F.Key'2, 0x2)
+         , (F.Key'3, 0x3)
+         , (F.Key'4, 0xc)
+         , (F.Key'Q, 0x4)
+         , (F.Key'W, 0x5)
+         , (F.Key'E, 0x6)
+         , (F.Key'R, 0xd)
+         , (F.Key'A, 0x7)
+         , (F.Key'S, 0x8)
+         , (F.Key'D, 0x9)
+         , (F.Key'F, 0xe)
+         , (F.Key'Z, 0xa)
+         , (F.Key'X, 0x0)
+         , (F.Key'C, 0xb)
+         , (F.Key'V, 0xf)
          ]
 
 -- convert a key state
-convKS :: F.KeyButtonState -> KeyState
-convKS F.Press   = KeyDown
-convKS F.Release = KeyUp
+convKS :: F.KeyState -> KeyState
+convKS F.KeyState'Pressed   = KeyDown
+convKS F.KeyState'Released  = KeyUp
+convKS F.KeyState'Repeating = KeyDown
 
 -- get the KeyID associated with a Gloss Key
 lookupKey :: F.Key -> Maybe KeyID
@@ -134,7 +137,7 @@ lookupKey = flip lookup keymap
 handleInput :: World -> IO World
 handleInput w =
   do F.pollEvents
-     keys <- mapM (F.getKey . fst) keymap
+     keys <- mapM (F.getKey win . fst) keymap
      let keys' = map convKS keys
      let kbd'  = kbd m // zip (map snd keymap) keys'
      let m'    = m { kbd=kbd' }
@@ -144,7 +147,8 @@ handleInput w =
        Just vx -> case findKeyPress (kbd m) kbd' of
          Nothing -> return w'
          Just k  -> return w { wMachine=setReg vx k m' { waiting=Nothing } }
-  where m  = wMachine w
+  where win = wWindow w
+        m  = wMachine w
         ti = wInstrT w
         tt = wTimerT w
 

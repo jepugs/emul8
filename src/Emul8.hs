@@ -81,8 +81,11 @@ runWithSettings (Settings f  s sa pa pw False) = do
   m <- loadFile f pa $ (initMachine r) { pc=sa, pxWrap=pw }
   putStrLn "Running. Press <ESC> to quit."
   initialize
-  openWindow "Emul8"
-  runMachine m instrSpeed
+  win <- openWindow "Emul8"
+  case win of
+    Nothing -> putStrLn "Could not open window."
+    Just w  -> do runMachine m w instrSpeed
+                  closeWindow w
   putStrLn "Exiting..."
   cleanup
 runWithSettings (Settings _  _ _  _  _  True) = showUsage
