@@ -26,6 +26,7 @@ executable emul8
                        Emul8.Machine
                        Emul8.Screen
                        Emul8.UI
+                       Emul8.World
   -- other-extensions:
   build-depends:       base >=4.6 && <4.8, array, bytestring, random, GLFW-b,
                        OpenGL

@@ -6,6 +6,7 @@ import Emul8.Graphics
 import Emul8.Machine
 import Emul8.Screen
 import Emul8.UI
+import Emul8.World
 
 import System.Console.GetOpt
 import System.Environment
