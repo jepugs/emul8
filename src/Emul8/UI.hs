@@ -155,26 +155,26 @@ handleInput w =
 -- Emulate the world for a specified time interval. Takes the elapsed time in
 -- seconds as an argument.
 emulate :: Double -> World -> Result World
-emulate t w
-  | tt' > timerSpeed =
-    emInstr timerSpeed wt' >>= emulate (t - timerSpeed)
-  | otherwise = emInstr t w { wTimerT=tt' }
-  where m = wMachine w
-        ti = wInstrT w
+emulate t w = emTimer w' >>= emInstr
+  where ti = wInstrT w
         tt = wTimerT w
-        tt' = t + tt
-        mt' = updateTimers m
-        wt' = w { wMachine=mt', wTimerT=tt - timerSpeed }
+        w' = w { wInstrT=ti + t, wTimerT=tt + t }
 
--- Emulate a world without updating timers
-emInstr :: Double -> World -> Result World
-emInstr t w
-  | ti' > is = w' >>= emInstr (t - is)
-  | otherwise = Right $ w { wInstrT=ti + t }
-  where m = wMachine w
-        ti = wInstrT w
-        tt = wTimerT w
+-- | Emulate a world, only updating timers
+emTimer :: World -> Result World
+emTimer w
+  | t > timerSpeed = emTimer w'
+  | otherwise      = Right w
+  where t  = wTimerT w
+        m' = updateTimers $ wMachine w
+        w' = w { wMachine=m', wTimerT=t - timerSpeed }
+
+-- | Emulate a world without updating timers
+emInstr :: World -> Result World
+emInstr w
+  | t > is    = w' >>= emInstr
+  | otherwise = Right w
+  where t  = wInstrT w
         is = wInstrS w
-        ti' = ti + t
-        m' = step m
-        w' = (\m -> w { wMachine=m, wInstrT=ti - instrSpeed }) <$> m'
+        m' = step $ wMachine w
+        w' = (\m -> w { wMachine=m, wInstrT=t - is }) <$> m'
