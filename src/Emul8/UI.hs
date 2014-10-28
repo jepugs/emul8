@@ -64,7 +64,7 @@ loadFile str a m = do
 
 -- Emulate a world. The first argument is the time recorded from the last frame.
 runWorld :: Double -> World -> IO ()
-runWorld t w = do
+runWorld t w @ (World _ win _ _ _) = do
   F.pollEvents
   qk <- F.getKey win quitKey
   if qk == F.KeyState'Pressed
@@ -79,11 +79,10 @@ runWorld t w = do
           Nothing -> t
     let world' = emulate (t' - t) w'
     either putStrLn (runWorld t') world'
-  where win = wWindow w
 
 -- Render the world.
 drawWorld :: World -> IO ()
-drawWorld w = drawScreen $ screen $ wMachine w
+drawWorld = drawScreen . screen . wMachine
 
 -- mappings of GLFW Keys to Emul8 KeyIDs
 keymap :: [(F.Key,KeyID)]
@@ -117,7 +116,7 @@ lookupKey = flip lookup keymap
 
 -- process input
 handleInput :: World -> IO World
-handleInput w =
+handleInput w @ (World m win ti tt _)=
   do F.pollEvents
      keys <- mapM (F.getKey win . fst) keymap
      let keys' = map convKS keys
@@ -129,7 +128,3 @@ handleInput w =
        Just vx -> case findKeyPress (kbd m) kbd' of
          Nothing -> return w'
          Just k  -> return w { wMachine=setReg vx k m' { waiting=Nothing } }
-  where win = wWindow w
-        m  = wMachine w
-        ti = wInstrT w
-        tt = wTimerT w

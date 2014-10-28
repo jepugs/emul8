@@ -27,26 +27,23 @@ timerSpeed = 1 / 60 :: Double
 -- | Emulate the world for a specified time interval. Takes the elapsed time in
 -- seconds as an argument.
 emulate :: Double -> World -> Result World
-emulate t w = emTimer w' >>= emInstr
+emulate t w @ (World _ _ ti tt _) = emTimer w' >>= emInstr
   where ti = wInstrT w
         tt = wTimerT w
         w' = w { wInstrT=ti + t, wTimerT=tt + t }
 
 -- | Emulate a world, only updating timers.
 emTimer :: World -> Result World
-emTimer w
+emTimer w @ (World m _ _ t _ )
   | t > timerSpeed = emTimer w'
   | otherwise      = Right w
-  where t  = wTimerT w
-        m' = updateTimers $ wMachine w
+  where m' = updateTimers m
         w' = w { wMachine=m', wTimerT=t - timerSpeed }
 
 -- | Emulate a world without updating timers.
 emInstr :: World -> Result World
-emInstr w
+emInstr w @ (World m _ t _ is)
   | t > is    = w' >>= emInstr
   | otherwise = Right w
-  where t  = wInstrT w
-        is = wInstrS w
-        m' = step $ wMachine w
+  where m' = step m
         w' = (\m -> w { wMachine=m, wInstrT=t - is }) `fmap` m'
