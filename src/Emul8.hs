@@ -50,7 +50,8 @@ options = [ Option "h" ["help"]
               "Start program execution at ADDR instead of the default 0x200."
           , Option "l" ["load-at"]
               (ReqArg (\a set -> set { sProgAddr=read a }) "ADDR")
-              "Load the into memory at ADDR instead of the default 0x200."
+              "Load the program the into memory at ADDR instead of the default\
+\0x200."
           , Option "s" ["speed"]
               (ReqArg (\s set -> set { sSpeed=read s }) "SECONDS")
               "Specify how long it takes to execute each instruction."

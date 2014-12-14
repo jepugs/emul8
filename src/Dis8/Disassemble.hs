@@ -106,8 +106,8 @@ showInstr lbls i = case i of
   Shl  x   -> "shl  " ++ showReg x
   SneV x y -> "skipneq " ++ showReg x ++ " " ++ showReg y
   LdI  a   -> case lookup a lbls of
-    Just l  -> "load i  " ++ l
-    Nothing -> "load i  " ++ show a
+    Just l  -> "load I  " ++ l
+    Nothing -> "load I  " ++ show a
   JpV0 a   -> case lookup a lbls of
     Just l  -> "jpv0 " ++ l
     Nothing -> "jpv0 " ++ show a
@@ -115,11 +115,11 @@ showInstr lbls i = case i of
   Drw  x y h->"drw  " ++ showReg x ++ " " ++ showReg y ++ " " ++ show h
   Skp  x   -> "skipkey  " ++ showReg x
   Sknp x   -> "skipnkey " ++ showReg x
-  LdDT x   -> "load " ++ showReg x ++ " " ++ "dt"
+  LdDT x   -> "load " ++ showReg x ++ " " ++ "DT"
   LdK  x   -> "key  " ++ showReg x
-  SetDT x  -> "load dt " ++ showReg x
-  SetST x  -> "load st " ++ showReg x
-  AddI x   -> "add  i  " ++ showReg x
+  SetDT x  -> "load DT " ++ showReg x
+  SetST x  -> "load ST " ++ showReg x
+  AddI x   -> "add  I  " ++ showReg x
   LdF  x   -> "char " ++ showReg x
   WrtB x   -> "bcd  " ++ showReg x
   WrtV x   -> "push " ++ showReg x
@@ -131,7 +131,7 @@ showByte = ("byte " ++) . show
 
 -- | Print out a register name.
 showReg :: Vx -> String
-showReg x = 'v' : c : ""
+showReg x = 'V' : c : ""
   where c = case x of
           0x0 -> '0'
           0x1 -> '1'

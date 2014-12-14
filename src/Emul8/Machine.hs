@@ -45,7 +45,7 @@ initMem = emptyMem // [(i,font !! (fromIntegral i)) | i <- [fontStart..fontEnd]]
 
 
 -- maximum stack pointer value
-maxSP = 16 :: Nybble
+maxSP = 32 :: Nybble
 
 -- stack
 type Stack = [Addr]
